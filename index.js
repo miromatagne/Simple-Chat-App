@@ -28,19 +28,15 @@ io.on("connection", (socket) => {
       "typing",
       `${connectedUsers[socket.id]} is typing...`
     );
-    console.log(connectedUsers);
   });
 
-  socket.on("priv", ({ msg, dest }) => {
-    console.log("MSG: " + msg);
-    console.log("DEST: " + dest);
+  socket.on("pm", ({ msg, dest }) => {
     let dest_socket = null;
     for (let c in connectedUsers) {
       if (connectedUsers[c] == dest) {
         dest_socket = c;
       }
     }
-    console.log("Dest socket : " + dest_socket);
     if (dest_socket) {
       socket
         .to(dest_socket)
@@ -61,7 +57,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("chat message", (msg) => {
-    console.log("message: " + msg);
     socket.broadcast.emit(
       "chat message",
       `${connectedUsers[socket.id]}: ${msg}`
