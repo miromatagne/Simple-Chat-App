@@ -44,6 +44,21 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on('list', () => {
+    console.log('Me ha llegado list');
+    let msg = '[';
+
+    for (let c in connectedUsers) {
+
+      msg += connectedUsers[c] + ', ';
+    }
+
+    msg = msg.substring(0, msg.length -2);
+    msg += ']';
+
+    io.emit('chat message', msg);
+  });
+
   socket.on("typing", (isTyping) => {
     console.log("Typing Event: " + isTyping);
     if (isTyping) {

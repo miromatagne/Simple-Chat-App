@@ -52,6 +52,13 @@
             $('#messages').append($('<li>').text(`Yo (privado para ${dest}): ${input.split(' ').slice(2).join(' ')}`));
           }
         }
+        else if (input == '/list')
+        {
+          socket.emit('chat message', input);
+          $('#messages').append($('<li>').text('Yo: ' + input));
+
+          socket.emit('list', '');
+        }
         else
         {
           if (input != '')
