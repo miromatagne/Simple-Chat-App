@@ -14,7 +14,6 @@ io.on("connection", (socket) => {
   console.log("a user connected");
   connectedUsers[socket.id] = "user";
   io.emit("chat message", "Nuevo usuario conectado");
-  console.log(connectedUsers);
 
   socket.on("disconnect", () => {
     console.log("user disconnected");
@@ -45,7 +44,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on('list', () => {
-    console.log('Me ha llegado list');
     let msg = '[';
 
     for (let c in connectedUsers) {
@@ -60,7 +58,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing", (isTyping) => {
-    console.log("Typing Event: " + isTyping);
     if (isTyping) {
       socket.broadcast.emit(
         "typing",
