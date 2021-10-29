@@ -136,16 +136,14 @@
     });
 
     socket.on('list', function (msg) {
-      if(listUsers!=msg) {
-        listUsers=msg
-        $('#users').empty();
-        var array = msg.split(/[\\/[\d\]]/);
-        array = array[1].split(",")
-        for(let value of array){
-          $('#users').append($('<li>').text(value));
-        }
-        }
-      });
+      $('#users').empty();
+      var array = msg.split(/[\\/[\d\]]/);
+      array = array[1].split(",")
+      for(let value of array){
+        $('#users').append($('<li>').text(value));
+      }
+    });
+    
     socket.on('typing', msg => {
       typingText.text(msg);
     });
