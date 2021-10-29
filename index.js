@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
     msg = msg.substring(0, msg.length -2);
     msg += ']';
 
-    io.emit('chat message', msg);
+    io.emit('list user', msg);
   });
 
   socket.on("typing", (isTyping) => {

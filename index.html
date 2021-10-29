@@ -1,98 +1,163 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-      #typing { position: sticky; top: 0; text-align: center; padding: 1rem; }
-    </style>
-  </head>
-  <body>
-    <div id="typing">
-      <p id="typing__text">No one is typing</p>
+
+<head>
+  <title>Socket.IO chat</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    form {
+      background: #000;
+      padding: 3px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    form input {
+      border: 0;
+      padding: 10px;
+      width: 90%;
+      margin-right: .5%;
+    }
+
+    form button {
+      width: 9%;
+      background: rgb(130, 224, 255);
+      border: none;
+      padding: 10px;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages li {
+      padding: 5px 10px;
+    }
+
+    #messages li:nth-child(odd) {
+      background: #eee;
+    }
+
+    #typing {
+      position: sticky;
+      top: 0;
+      text-align: center;
+      padding: 1rem;
+    }
+  </style>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+</head>
+
+<body>
+  <div class="row">
+    <div class="col-sm-9">
+      <ul id="messages">
+      </ul>
+      <form action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+      </form>
+      <div id="typing">
+        <p id="typing__text">No one is typing</p>
+      </div>
     </div>
-    <ul id="messages">
-    </ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-    <script>
-      var socket = io();
-      let imTyping = false;
-      let typingTimeout = null;
+    <div class="col-sm-3">
+      <h3>Usuarios Conectados</h3>
+      <ul id="users" class="list-group-item">
+      </ul>
+    </div>
+  </div>
+  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>
+    var socket = io();
+    let imTyping = false;
+    let typingTimeout = null;
+    var listUsers = null;
 
-      let form = $('form');
-      let typingText = $('#typing__text');
+    let form = $('form');
+    let typingText = $('#typing__text');
 
-      form.submit(() => {
-        const input = $('#m').val();
-        if (input.startsWith('/nick'))
-        {
-          let nick = input.split(' ')[1];
-          if (nick != '')
-          {
-            socket.emit('nick', input.split(' ')[1]);
-          }
+    form.submit(() => {
+      const input = $('#m').val();
+      if (input.startsWith('/nick')) {
+        let nick = input.split(' ')[1];
+        if (nick != '') {
+          socket.emit('nick', input.split(' ')[1]);
         }
-        else if (input.startsWith('/pm'))
-        {
-          let dest = input.split(' ')[1];
-          if (dest != '')
-          {
-            socket.emit('pm', {msg:input.split(' ').slice(2).join(' '),dest:dest});
-            $('#messages').append($('<li>').text(`Yo (privado para ${dest}): ${input.split(' ').slice(2).join(' ')}`));
-          }
+      }
+      else if (input.startsWith('/pm')) {
+        let dest = input.split(' ')[1];
+        if (dest != '') {
+          socket.emit('pm', { msg: input.split(' ').slice(2).join(' '), dest: dest });
+          $('#messages').append($('<li>').text(`Yo (privado para ${dest}): ${input.split(' ').slice(2).join(' ')}`));
         }
-        else if (input == '/list')
-        {
+      }
+      else {
+        if (input != '') {
           socket.emit('chat message', input);
           $('#messages').append($('<li>').text('Yo: ' + input));
-
-          socket.emit('list', '');
         }
-        else
-        {
-          if (input != '')
-          {
-            socket.emit('chat message', input);
-            $('#messages').append($('<li>').text('Yo: ' + input));
-          }
+      }
+
+      $('#m').val('');
+      return false;
+    });
+
+    form.on('input', () => {
+      if (!imTyping) {
+        socket.emit('typing', true);
+        imTyping = true;
+      }
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit('typing', false);
+        imTyping = false;
+      }, 1000);
+    });
+
+    $(document).ready(function() {	
+      function listUsers() {
+        socket.emit('list', '');
+      }
+      setInterval(listUsers, 5000);
+    });
+    
+    socket.on('chat message', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+
+    socket.on('list user', function (msg) {   
+      if(listUsers!=msg) {
+        listUsers=msg
+        $('#users').empty();
+        var array = msg.split(/[\\/[\d\]]/);
+        array = array[1].split(",")
+        for(let value of array){
+          $('#users').append($('<li>').text(value));
         }
-
-        $('#m').val('');
-        return false;
-      });
-
-      form.on('input', () => {
-        if (!imTyping)
-        {
-          socket.emit('typing', true);
-          imTyping = true;
         }
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-          socket.emit('typing', false);
-          imTyping = false;
-        }, 1000);
       });
+    socket.on('typing', msg => {
+      typingText.text(msg);
+    });
 
-      socket.on('chat message', function(msg){
-        $('#messages').append($('<li>').text(msg));
-      });
+  </script>
+</body>
 
-      socket.on('typing', msg => {
-        typingText.text(msg);
-      });
-
-    </script>
-  </body>
 </html>
