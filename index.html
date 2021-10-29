@@ -93,14 +93,19 @@
     let form = $('form');
     let typingText = $('#typing__text');
 
+    //Acciones a tomar cuando se envia un mensaje
     form.submit(() => {
       const input = $('#m').val();
+
+      //Si el mensaje empieza con "/nick", significa que es un cambio de nickname
       if (input.startsWith('/nick')) {
         let nick = input.split(' ')[1];
         if (nick != '') {
           socket.emit('nick', input.split(' ')[1]);
         }
       }
+
+      //Si el mensaje empieza por "/pm" significa que es un mensaje privado
       else if (input.startsWith('/pm')) {
         let dest = input.split(' ')[1];
         if (dest != '') {
@@ -108,6 +113,8 @@
           $('#messages').append($('<li>').text(`Yo (privado para ${dest}): ${input.split(' ').slice(2).join(' ')}`));
         }
       }
+
+      //En otro caso, es un mensaje que se enviará a todos los usuarios conectados
       else {
         if (input != '') {
           socket.emit('chat message', input);
@@ -119,6 +126,7 @@
       return false;
     });
 
+    //Cuando el usuario está escribiendo, se notifica a los otros usuarios conectados
     form.on('input', () => {
       if (!imTyping) {
         socket.emit('typing', true);
@@ -131,10 +139,13 @@
       }, 1000);
     });
     
+    //Cuando se recibe un mensaje, lo añade a la lista de mensajes a mostrar
     socket.on('chat message', function (msg) {
       $('#messages').append($('<li>').text(msg));
     });
 
+    //Cuando se recibe la lista de todos los usuarios conectados, lo añade a la lista
+    //de usuarios a mostrar a la derecha de la pantalla
     socket.on('list', function (msg) {
       $('#users').empty();
       var array = msg.split(/[\\/[\d\]]/);
