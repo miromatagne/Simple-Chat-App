@@ -14,19 +14,18 @@ io.on("connection", (socket) => {
   console.log("a user connected");
   connectedUsers[socket.id] = "user";
   io.emit("chat message", "Nuevo usuario conectado");
+  emitUserList();
 
   socket.on("disconnect", () => {
     console.log("user disconnected");
     delete connectedUsers[socket.id];
+    emitUserList();
   });
 
   socket.on("nick", (nick) => {
     connectedUsers[socket.id] = nick;
     console.log("new nickname: " + nick);
-    socket.broadcast.emit(
-      "typing",
-      `${connectedUsers[socket.id]} is typing...`
-    );
+    emitUserList();
   });
 
   socket.on("pm", ({ msg, dest }) => {
@@ -44,17 +43,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on('list', () => {
-    let msg = '[';
-
-    for (let c in connectedUsers) {
-
-      msg += connectedUsers[c] + ', ';
-    }
-
-    msg = msg.substring(0, msg.length -2);
-    msg += ']';
-
-    io.emit('chat message', msg);
+    emitUserList();
   });
 
   socket.on("typing", (isTyping) => {
@@ -74,6 +63,21 @@ io.on("connection", (socket) => {
       `${connectedUsers[socket.id]}: ${msg}`
     );
   });
+
+  function emitUserList()
+  {
+    let msg = '[';
+
+    for (let c in connectedUsers) {
+
+      msg += connectedUsers[c] + ', ';
+    }
+
+    msg = msg.substring(0, msg.length -2);
+    msg += ']';
+
+    io.emit('list', msg);
+  }
 });
 
 http.listen(3000, function () {
