@@ -135,7 +135,7 @@
       $('#messages').append($('<li>').text(msg));
     });
 
-    socket.on('list user', function (msg) {   
+    socket.on('list', function (msg) {
       if(listUsers!=msg) {
         listUsers=msg
         $('#users').empty();
