@@ -42,10 +42,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on('list', () => {
-    emitUserList();
-  });
-
   socket.on("typing", (isTyping) => {
     if (isTyping) {
       socket.broadcast.emit(
