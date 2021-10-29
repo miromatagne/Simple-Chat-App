@@ -25,10 +25,6 @@ io.on("connection", (socket) => {
   socket.on("nick", (nick) => {
     connectedUsers[socket.id] = nick;
     console.log("new nickname: " + nick);
-    socket.broadcast.emit(
-      "typing",
-      `${connectedUsers[socket.id]} is typing...`
-    );
     emitUserList();
   });
 
